@@ -70,7 +70,7 @@ class LabelController extends Controller
      */
     public function attachToNote(Request $request, $noteId)
     {
-        $request->validate(['label_ids' => 'required|array']);
+        $request->validate(['label_ids' => 'present|array']);
 
         $note = $request->user()->notes()->findOrFail($noteId);
         $note->labels()->sync($request->label_ids);

@@ -30,7 +30,12 @@ export default function SharedNotesPage() {
       ) : (
         <div className={viewMode === 'grid' ? 'notes-grid' : 'notes-list'}>
           {sharedNotes.map(item => (
-            <div key={item.id} className="note-card" style={{ cursor: 'default' }}>
+            <div 
+              key={item.id} 
+              className="note-card" 
+              style={{ cursor: 'pointer' }}
+              onClick={() => window.location.href = `/ghi-chu/${item.note_id}`}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <img
                   src={item.owner?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.owner?.name || '')}&background=6366f1&color=fff&size=28`}

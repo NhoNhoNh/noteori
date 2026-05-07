@@ -41,6 +41,15 @@ export default function Header({ onMenuClick }) {
 
   const unreadCount = notifications.filter(n => !n.read_at).length
 
+  const handleReadNotification = async (id) => {
+    try {
+      await notificationsAPI.markAsRead(id)
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
+    } catch {
+      // Silently fail
+    }
+  }
+
   return (
     <header className="app-header">
       {/* Mobile menu */}
@@ -87,9 +96,14 @@ export default function Header({ onMenuClick }) {
                 </div>
               ) : (
                 notifications.map(n => (
-                  <div key={n.id} className="dropdown-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <div 
+                    key={n.id} 
+                    className="dropdown-item" 
+                    style={{ flexDirection: 'column', alignItems: 'flex-start', cursor: 'pointer', opacity: n.read_at ? 0.6 : 1 }}
+                    onClick={() => handleReadNotification(n.id)}
+                  >
                     <span style={{ fontWeight: n.read_at ? 400 : 600, fontSize: 'var(--font-size-sm)' }}>{n.message}</span>
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>{n.created_at}</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-muted)' }}>{new Date(n.created_at).toLocaleDateString('vi-VN')}</span>
                   </div>
                 ))
               )}

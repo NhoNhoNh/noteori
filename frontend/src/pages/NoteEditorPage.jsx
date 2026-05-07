@@ -27,6 +27,8 @@ export default function NoteEditorPage() {
   const autoSaveTimer = useRef(null)
   const typingTimerRef = useRef(null)
   const noteIdRef = useRef(id || null)
+  const isCreatingRef = useRef(false)
+  const pendingUpdateRef = useRef(null)
   const isNewNote = !id
   const isRemoteUpdate = useRef(false)
 
@@ -53,6 +55,11 @@ export default function NoteEditorPage() {
 
   // Auto-save logic
   const autoSave = useCallback(async (data) => {
+    if (isCreatingRef.current) {
+      pendingUpdateRef.current = data
+      return
+    }
+
     setSaving(true)
     try {
       if (noteIdRef.current) {
@@ -60,17 +67,28 @@ export default function NoteEditorPage() {
         await notesAPI.update(noteIdRef.current, data)
       } else {
         // Create new
+        isCreatingRef.current = true
         const res = await notesAPI.create(data)
         noteIdRef.current = res.data.data.id
         // Update URL without reload
         window.history.replaceState(null, '', `/ghi-chu/${res.data.data.id}`)
+        isCreatingRef.current = false
+
+        if (pendingUpdateRef.current) {
+          const queuedData = pendingUpdateRef.current
+          pendingUpdateRef.current = null
+          await notesAPI.update(noteIdRef.current, queuedData)
+        }
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
+      isCreatingRef.current = false
       toast.error('Không thể lưu ghi chú')
     } finally {
-      setSaving(false)
+      if (!isCreatingRef.current && !pendingUpdateRef.current) {
+        setSaving(false)
+      }
     }
   }, [])
 
@@ -193,6 +211,8 @@ export default function NoteEditorPage() {
     setNoteLabels(newLabels)
     try {
       await labelsAPI.attachToNote(noteIdRef.current, newLabels.map(l => l.id))
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
     } catch {
       toast.error('Không thể cập nhật nhãn')
     }
