@@ -1,60 +1,24 @@
 #!/bin/bash
-# Noteori - Docker Setup Script
-# Usage: ./setup.sh
 
-set -e
+echo "🚀 Khởi tạo dự án Noteori..."
 
-echo "🚀 Setting up Noteori..."
+echo "1. Khởi chạy Docker containers..."
+docker compose up -d
 
-# Copy .env if not exists
-if [ ! -f backend/.env ]; then
-    cp backend/.env.example backend/.env
-    echo "✅ Created backend/.env"
-fi
+echo "2. Copy file .env cho Backend..."
+docker compose exec php cp .env.example .env
 
-# Create storage directories
-mkdir -p backend/storage/app/public/avatars
-mkdir -p backend/storage/app/public/note-images
-mkdir -p backend/storage/framework/cache
-mkdir -p backend/storage/framework/sessions
-mkdir -p backend/storage/framework/views
-mkdir -p backend/storage/logs
-mkdir -p backend/bootstrap/cache
-echo "✅ Created storage directories"
+echo "3. Cài đặt thư viện PHP (Composer)..."
+docker compose exec php composer install
 
-# Build and start containers
-echo "🐳 Building Docker containers..."
-docker-compose build
-docker-compose up -d
+echo "4. Tạo khóa bảo mật (APP_KEY)..."
+docker compose exec php php artisan key:generate
 
-# Wait for MySQL to be ready
-echo "⏳ Waiting for MySQL..."
-sleep 10
+echo "5. Chạy database migrations và tạo dữ liệu mẫu..."
+docker compose exec php php artisan migrate --seed
 
-# Install Composer dependencies
-echo "📦 Installing PHP dependencies..."
-docker-compose exec php composer install
+echo "6. Tạo storage link..."
+docker compose exec php php artisan storage:link
 
-# Generate app key
-echo "🔑 Generating app key..."
-docker-compose exec php php artisan key:generate
-
-# Run migrations
-echo "🗃️ Running migrations..."
-docker-compose exec php php artisan migrate --force
-
-# Create storage link
-echo "🔗 Creating storage link..."
-docker-compose exec php php artisan storage:link
-
-# Clear caches
-echo "🧹 Clearing caches..."
-docker-compose exec php php artisan config:clear
-docker-compose exec php php artisan cache:clear
-
-echo ""
-echo "✅ Noteori is ready!"
-echo "🌐 Frontend: http://localhost:5173"
-echo "🔌 API: http://localhost/api"
-echo "📊 MySQL: localhost:3306"
-echo ""
+echo "✅ Hoàn tất! Frontend đang chạy tại http://localhost:5173"
+echo "Tài khoản mẫu: admin@noteori.local / password"

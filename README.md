@@ -21,7 +21,7 @@ Noteori là ứng dụng quản lý ghi chú thông minh được xây dựng v�
 - Docker & Docker Compose
 - Node.js 20+ (cho development)
 
-### Chạy Bằng Docker
+### Chạy Bằng Docker (Khuyên dùng)
 
 ```bash
 # Clone project
@@ -36,24 +36,19 @@ chmod +x setup.sh
 ### Chạy Thủ Công
 
 ```bash
-# 1. Copy .env
-cp backend/.env.example backend/.env
+# 1. Start Docker
+docker compose up -d
 
-# 2. Start Docker
-docker-compose up -d
+# 2. Copy .env cho Backend
+docker compose exec php cp .env.example .env
 
 # 3. Install dependencies
-docker-compose exec php composer install
+docker compose exec php composer install
 
 # 4. Setup Laravel
-docker-compose exec php php artisan key:generate
-docker-compose exec php php artisan migrate
-docker-compose exec php php artisan storage:link
-
-# 5. Frontend
-cd frontend
-npm install
-npm run dev
+docker compose exec php php artisan key:generate
+docker compose exec php php artisan migrate --seed
+docker compose exec php php artisan storage:link
 ```
 
 ### Truy Cập
