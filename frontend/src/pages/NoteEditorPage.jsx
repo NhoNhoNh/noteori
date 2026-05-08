@@ -13,7 +13,7 @@ export default function NoteEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { labels, fetchLabels, createNote, updateNote } = useNotes()
+  const { labels, fetchLabels, createNote, updateNote, createLabel } = useNotes()
   const [note, setNote] = useState({ title: '', content: '' })
   const [noteLabels, setNoteLabels] = useState([])
   const [noteImages, setNoteImages] = useState([])
@@ -22,6 +22,7 @@ export default function NoteEditorPage() {
   const [showShareModal, setShowShareModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showLabelPicker, setShowLabelPicker] = useState(false)
+  const [newLabelName, setNewLabelName] = useState('')
   const [collaborators, setCollaborators] = useState([])
   const [typingUser, setTypingUser] = useState(null)
   const autoSaveTimer = useRef(null)
@@ -218,6 +219,18 @@ export default function NoteEditorPage() {
     }
   }
 
+  const handleCreateLabelInline = async (e) => {
+    e.preventDefault()
+    if (!newLabelName.trim()) return
+    try {
+      const newLabel = await createLabel({ name: newLabelName.trim() })
+      setNewLabelName('')
+      handleLabelToggle(newLabel)
+    } catch {
+      // Error is handled in context
+    }
+  }
+
   return (
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
       {/* Toolbar */}
@@ -263,17 +276,39 @@ export default function NoteEditorPage() {
             <FiTag />
           </button>
           {showLabelPicker && (
-            <div className="dropdown-menu" style={{ right: 0, minWidth: 220 }}>
+            <div className="dropdown-menu" style={{ right: 0, minWidth: 240 }}>
               <div style={{ padding: '8px 12px', fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>Chọn nhãn</div>
-              {labels.map(label => (
-                <button key={label.id} className="dropdown-item" onClick={() => handleLabelToggle(label)}>
-                  {noteLabels.some(l => l.id === label.id) ? <FiCheck style={{ color: 'var(--success)' }} /> : <span style={{ width: 18 }} />}
-                  {label.name}
-                </button>
-              ))}
-              {labels.length === 0 && (
-                <div style={{ padding: 12, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', textAlign: 'center' }}>Chưa có nhãn</div>
-              )}
+              
+              <div style={{ padding: '4px 8px' }}>
+                <form onSubmit={handleCreateLabelInline} style={{ display: 'flex', gap: 4 }}>
+                  <input
+                    type="text"
+                    value={newLabelName}
+                    onChange={(e) => setNewLabelName(e.target.value)}
+                    placeholder="Tên nhãn mới..."
+                    className="form-input"
+                    style={{ padding: '6px 8px', fontSize: 'var(--font-size-xs)' }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button type="submit" className="btn-primary btn-sm" disabled={!newLabelName.trim()}>
+                    Tạo
+                  </button>
+                </form>
+              </div>
+
+              <div className="dropdown-divider"></div>
+
+              <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                {labels.map(label => (
+                  <button key={label.id} className="dropdown-item" onClick={() => handleLabelToggle(label)}>
+                    {noteLabels.some(l => l.id === label.id) ? <FiCheck style={{ color: 'var(--success)', flexShrink: 0 }} /> : <span style={{ width: 18, flexShrink: 0 }} />}
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label.name}</span>
+                  </button>
+                ))}
+                {labels.length === 0 && (
+                  <div style={{ padding: 12, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', textAlign: 'center' }}>Chưa có nhãn</div>
+                )}
+              </div>
             </div>
           )}
         </div>

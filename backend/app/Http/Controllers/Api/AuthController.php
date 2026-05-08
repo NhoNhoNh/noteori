@@ -210,15 +210,17 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
 
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+
         if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
-            return response()->json(['message' => 'Liên kết không hợp lệ'], 422);
+            return redirect($frontendUrl . '/dang-nhap?error=invalid_verification');
         }
 
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
 
-        return response()->json(['message' => 'Email đã được xác minh']);
+        return redirect($frontendUrl . '/dang-nhap?verified=1');
     }
 
     /**

@@ -35,6 +35,9 @@ services:
       - DB_USERNAME=noteori_user
       - DB_PASSWORD=noteori_secret
       - REDIS_HOST=redis
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
     networks:
       - noteori-network
 
@@ -96,6 +99,9 @@ services:
       - DB_USERNAME=noteori_user
       - DB_PASSWORD=noteori_secret
       - REDIS_HOST=redis
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
     networks:
       - noteori-network
 
@@ -120,6 +126,16 @@ services:
       - DB_USERNAME=noteori_user
       - DB_PASSWORD=noteori_secret
       - REDIS_HOST=redis
+    networks:
+      - noteori-network
+
+  # Mailpit (Local SMTP and Web UI)
+  mailpit:
+    image: axllent/mailpit
+    container_name: noteori-mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
     networks:
       - noteori-network
 
