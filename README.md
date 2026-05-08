@@ -56,6 +56,11 @@ docker compose exec php php artisan storage:link
 - 🔌 **API**: http://localhost/api
 - 📊 **MySQL**: localhost:3306 (user: noteori_user, pass: noteori_secret)
 
+### Tài Khoản Mẫu
+Sau khi cài đặt xong (đã chạy migration và seed), bạn có thể đăng nhập ngay với tài khoản:
+- **Email**: `admin@noteori.local`
+- **Mật khẩu**: `password`
+
 ## 📂 Cấu Trúc
 
 ```
