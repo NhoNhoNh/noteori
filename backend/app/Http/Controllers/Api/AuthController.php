@@ -44,7 +44,9 @@ class AuthController extends Controller
         // Send verification email
         $user->sendEmailVerificationNotification();
 
-        // Auto login after registration
+        // Auto login after registration (sets the session cookie)
+        Auth::login($user);
+
         $token = $user->createToken('noteori')->plainTextToken;
 
         return response()->json([
@@ -75,6 +77,8 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $request->session()->regenerate();
+
         $user = Auth::user();
         $token = $user->createToken('noteori')->plainTextToken;
 
@@ -93,6 +97,10 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
+        
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'Đã đăng xuất',
@@ -123,20 +131,7 @@ class AuthController extends Controller
             'email.exists' => 'Email không tồn tại trong hệ thống',
         ]);
 
-        // Generate OTP
-        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-        // Store OTP
-        \DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
-            [
-                'token' => Hash::make($otp),
-                'otp' => $otp,
-                'created_at' => now(),
-            ]
-        );
-
-        // Send reset email with link and OTP
+        // Send reset email with link
         $status = Password::sendResetLink($request->only('email'));
 
         return response()->json([

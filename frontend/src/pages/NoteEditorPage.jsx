@@ -45,7 +45,7 @@ export default function NoteEditorPage() {
     try {
       const res = await notesAPI.get(noteId)
       const data = res.data.data
-      setNote({ title: data.title || '', content: data.content || '' })
+      setNote({ title: data.title || '', content: data.content || '', has_password: data.has_password })
       setNoteLabels(data.labels || [])
       setNoteImages(data.images || [])
     } catch (err) {
@@ -131,6 +131,7 @@ export default function NoteEditorPage() {
         if (data.updated_by !== user?.id) {
           isRemoteUpdate.current = true
           setNote(prev => ({
+            ...prev,
             title: data.title ?? prev.title,
             content: data.content ?? prev.content,
           }))
@@ -271,41 +272,47 @@ export default function NoteEditorPage() {
           <input type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ display: 'none' }} />
         </label>
 
-        <div style={{ position: 'relative' }}>
-          <button className="btn-icon" onClick={() => setShowLabelPicker(!showLabelPicker)} title="Nhãn">
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <button type="button" className="btn-icon" onClick={(e) => {
+            e.preventDefault();
+            setShowLabelPicker(prev => !prev);
+          }} title="Nhãn">
             <FiTag />
           </button>
           {showLabelPicker && (
-            <div className="dropdown-menu" style={{ right: 0, minWidth: 240 }}>
+            <div style={{ position: 'absolute', top: '100%', left: 0, minWidth: 240, zIndex: 9999, background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', opacity: 1 }}>
               <div style={{ padding: '8px 12px', fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>Chọn nhãn</div>
               
               <div style={{ padding: '4px 8px' }}>
                 <form onSubmit={handleCreateLabelInline} style={{ display: 'flex', gap: 4 }}>
                   <input
                     type="text"
-                    value={newLabelName}
+                    value={newLabelName || ''}
                     onChange={(e) => setNewLabelName(e.target.value)}
                     placeholder="Tên nhãn mới..."
                     className="form-input"
                     style={{ padding: '6px 8px', fontSize: 'var(--font-size-xs)' }}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <button type="submit" className="btn-primary btn-sm" disabled={!newLabelName.trim()}>
+                  <button type="submit" className="btn-primary btn-sm" disabled={!newLabelName?.trim()}>
                     Tạo
                   </button>
                 </form>
               </div>
 
-              <div className="dropdown-divider"></div>
+              <div className="dropdown-divider" style={{ margin: '8px 0' }}></div>
 
               <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                {labels.map(label => (
-                  <button key={label.id} className="dropdown-item" onClick={() => handleLabelToggle(label)}>
-                    {noteLabels.some(l => l.id === label.id) ? <FiCheck style={{ color: 'var(--success)', flexShrink: 0 }} /> : <span style={{ width: 18, flexShrink: 0 }} />}
-                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label.name}</span>
-                  </button>
-                ))}
-                {labels.length === 0 && (
+                {Array.isArray(labels) && labels.map(label => {
+                  const isAttached = Array.isArray(noteLabels) && noteLabels.some(l => l.id === label.id);
+                  return (
+                    <button type="button" key={label.id} className="dropdown-item" onClick={(e) => { e.preventDefault(); handleLabelToggle(label); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                      {isAttached ? <FiCheck style={{ color: 'var(--success)', flexShrink: 0 }} /> : <span style={{ width: 14, display: 'inline-block', flexShrink: 0 }} />}
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label.name}</span>
+                    </button>
+                  );
+                })}
+                {(!Array.isArray(labels) || labels.length === 0) && (
                   <div style={{ padding: 12, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', textAlign: 'center' }}>Chưa có nhãn</div>
                 )}
               </div>
@@ -384,7 +391,12 @@ export default function NoteEditorPage() {
 
       {/* Password Modal */}
       {showPasswordModal && noteIdRef.current && (
-        <NotePasswordModal noteId={noteIdRef.current} onClose={() => setShowPasswordModal(false)} />
+        <NotePasswordModal 
+          noteId={noteIdRef.current} 
+          hasPassword={note.has_password} 
+          onClose={() => setShowPasswordModal(false)} 
+          onSuccess={() => loadNote(noteIdRef.current)}
+        />
       )}
     </div>
   )

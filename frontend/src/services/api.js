@@ -9,16 +9,25 @@ const api = axios.create({
   withCredentials: true,
 })
 
-// Request interceptor - attach token
-api.interceptors.request.use((config) => {
+// Fetch CSRF cookie from Sanctum (called once before first state-changing request)
+let csrfCookiePromise = null
+async function ensureCsrfCookie() {
+  if (!csrfCookiePromise) {
+    csrfCookiePromise = axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+      .catch(() => { csrfCookiePromise = null })
+  }
+  return csrfCookiePromise
+}
+
+// Request interceptor - attach token + ensure CSRF cookie
+api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-  // CSRF token
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-  if (csrfToken) {
-    config.headers['X-CSRF-TOKEN'] = csrfToken
+  // Ensure CSRF cookie exists for state-changing requests
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    await ensureCsrfCookie()
   }
   return config
 })

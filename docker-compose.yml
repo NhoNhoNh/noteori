@@ -35,9 +35,9 @@ services:
       - DB_USERNAME=noteori_user
       - DB_PASSWORD=noteori_secret
       - REDIS_HOST=redis
-      - MAIL_MAILER=smtp
-      - MAIL_HOST=mailpit
-      - MAIL_PORT=1025
+      # - MAIL_MAILER=smtp
+      # - MAIL_HOST=mailpit
+      # - MAIL_PORT=1025
     networks:
       - noteori-network
 
@@ -99,9 +99,9 @@ services:
       - DB_USERNAME=noteori_user
       - DB_PASSWORD=noteori_secret
       - REDIS_HOST=redis
-      - MAIL_MAILER=smtp
-      - MAIL_HOST=mailpit
-      - MAIL_PORT=1025
+      # - MAIL_MAILER=smtp
+      # - MAIL_HOST=mailpit
+      # - MAIL_PORT=1025
     networks:
       - noteori-network
 

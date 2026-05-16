@@ -3,6 +3,17 @@
  */
 export function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
+    if (import.meta.env.DEV) {
+      // Unregister in dev mode to fix Vite HMR caching issues
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (let registration of registrations) {
+          registration.unregister();
+          console.log('Unregistered SW for dev mode');
+        }
+      });
+      return;
+    }
+
     window.addEventListener('load', async () => {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js', {

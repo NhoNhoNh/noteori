@@ -3,7 +3,7 @@ import { notesAPI } from '../services/api'
 import { toast } from 'react-toastify'
 import { FiX, FiLock, FiUnlock } from 'react-icons/fi'
 
-export default function NotePasswordModal({ noteId, hasPassword, onClose }) {
+export default function NotePasswordModal({ noteId, hasPassword, onClose, onSuccess }) {
   const [mode, setMode] = useState(hasPassword ? 'menu' : 'set') // 'menu' | 'set' | 'change' | 'remove'
   const [formData, setFormData] = useState({ current_password: '', password: '', password_confirmation: '' })
   const [loading, setLoading] = useState(false)
@@ -22,6 +22,7 @@ export default function NotePasswordModal({ noteId, hasPassword, onClose }) {
     try {
       await notesAPI.setPassword(noteId, { password: formData.password, password_confirmation: formData.password_confirmation })
       toast.success('Đã bật bảo vệ mật khẩu')
+      if (onSuccess) onSuccess()
       onClose()
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể đặt mật khẩu')
@@ -39,6 +40,7 @@ export default function NotePasswordModal({ noteId, hasPassword, onClose }) {
     try {
       await notesAPI.changePassword(noteId, formData)
       toast.success('Đã đổi mật khẩu ghi chú')
+      if (onSuccess) onSuccess()
       onClose()
     } catch (err) {
       setError(err.response?.data?.message || 'Mật khẩu hiện tại không đúng')
@@ -54,6 +56,7 @@ export default function NotePasswordModal({ noteId, hasPassword, onClose }) {
     try {
       await notesAPI.removePassword(noteId, { password: formData.current_password })
       toast.success('Đã tắt bảo vệ mật khẩu')
+      if (onSuccess) onSuccess()
       onClose()
     } catch (err) {
       setError(err.response?.data?.message || 'Mật khẩu không đúng')
