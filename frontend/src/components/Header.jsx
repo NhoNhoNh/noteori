@@ -50,6 +50,21 @@ export default function Header({ onMenuClick }) {
     }
   }
 
+  const handleToggleNotifications = async () => {
+    const willShow = !showNotifications
+    setShowNotifications(willShow)
+    
+    // Auto mark all as read when opening the menu
+    if (willShow && unreadCount > 0) {
+      try {
+        await notificationsAPI.markAllAsRead()
+        setNotifications(prev => prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() })))
+      } catch {
+        // Silently fail
+      }
+    }
+  }
+
   return (
     <header className="app-header">
       {/* Mobile menu */}
@@ -80,13 +95,13 @@ export default function Header({ onMenuClick }) {
         </button>
 
         <div style={{ position: 'relative' }}>
-          <button className="btn-icon" onClick={() => setShowNotifications(!showNotifications)} id="btn-notifications">
+          <button className="btn-icon" onClick={handleToggleNotifications} id="btn-notifications">
             <FiBell />
             {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
           </button>
 
           {showNotifications && (
-            <div className="dropdown-menu" style={{ width: 320, right: 0, maxHeight: 400, overflowY: 'auto' }}>
+            <div className="dropdown-menu show" style={{ position: 'absolute', top: '100%', right: 0, width: 320, maxHeight: 400, overflowY: 'auto', zIndex: 9999, padding: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
               <div style={{ padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border-color)' }}>
                 Thông báo
               </div>
